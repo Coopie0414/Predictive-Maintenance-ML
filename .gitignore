@@ -10,4 +10,3 @@ data/*.csv
 CMaps/
 models/*.pkl
 models/*.h5
-results/report.pdf
