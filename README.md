@@ -9,13 +9,27 @@ Machine learning project for predicting the **Remaining Useful Life (RUL)** of t
 
 ## Results (FD001)
 
+**Evaluation protocol**: Each model predicts RUL at the last observed cycle of each test engine (100 engines), compared against ground truth from `RUL_FD001.txt`. RUL is clipped at 125 for both training labels and test ground truth. Models are retrained on the full training set (20,631 samples, 100 engines) for test-set evaluation.
+
+### Test Set
+
 | Model | RMSE | MAE | R² |
 |---|---|---|---|
-| Linear Regression | 21.68 | 17.61 | 0.723 |
-| Random Forest | 18.77 | 13.58 | 0.792 |
-| **XGBoost** | **18.72** | **13.31** | **0.793** |
+| Linear Regression | 20.82 | 16.57 | 0.730 |
+| Random Forest | 16.99 | 11.97 | 0.820 |
+| **XGBoost** | **16.81** | **11.84** | **0.824** |
 
-**Test Set (XGBoost)**: RMSE = 16.73, MAE = 11.83, R² = 0.826
+XGBoost achieves a **19.3% RMSE reduction** over the Linear Regression baseline.
+
+### Validation Set (grouped by engine unit, no data leakage)
+
+| Model | RMSE | MAE | R² |
+|---|---|---|---|
+| Linear Regression | 20.41 | 16.48 | 0.761 |
+| Random Forest | 17.22 | 12.55 | 0.830 |
+| XGBoost | 16.94 | 12.19 | 0.835 |
+
+*80/20 split by engine unit via `GroupShuffleSplit` to prevent same-engine data from appearing in both train and validation sets.*
 
 ### Key Figures
 

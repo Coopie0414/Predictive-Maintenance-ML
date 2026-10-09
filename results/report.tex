@@ -26,7 +26,7 @@
 
 % ============================================================
 \begin{abstract}
-Predictive maintenance aims to forecast equipment failures before they occur, reducing downtime and maintenance costs. This report presents a machine learning approach to predicting the Remaining Useful Life (RUL) of turbofan engines using the NASA C-MAPSS FD001 dataset. We evaluate three regression models---Linear Regression, Random Forest, and XGBoost---on 100 run-to-failure engine trajectories with 21 sensor measurements. After feature engineering (constant column removal, RUL clipping at 125 cycles, and MinMax normalization), XGBoost achieves the best performance with a test set RMSE of 16.73 cycles and $R^2$ of 0.826, demonstrating that gradient boosting can effectively capture sensor degradation patterns for RUL estimation.
+Predictive maintenance aims to forecast equipment failures before they occur, reducing downtime and maintenance costs. This report presents a machine learning approach to predicting the Remaining Useful Life (RUL) of turbofan engines using the NASA C-MAPSS FD001 dataset. We evaluate three regression models---Linear Regression, Random Forest, and XGBoost---on 100 run-to-failure engine trajectories with 21 sensor measurements. After feature engineering (constant column removal, RUL clipping at 125 cycles, and MinMax normalization), XGBoost achieves the best performance with a test set RMSE of 16.81 cycles and $R^2$ of 0.824, a 19.3\% RMSE reduction over the Linear Regression baseline. Gradient boosting effectively captures sensor degradation patterns for RUL estimation.
 \end{abstract}
 
 % ============================================================
@@ -130,48 +130,50 @@ We evaluate three regression models:
     \item \textbf{XGBoost}: A gradient-boosted tree ensemble (100 trees, learning rate 0.1) that iteratively corrects prediction errors.
 \end{itemize}
 
-All models are trained on an 80/20 random split of the training data (16{,}504 training / 4{,}127 validation samples) with a fixed random seed for reproducibility.
+For model comparison, training data is split 80/20 \textbf{by engine unit} using \texttt{GroupShuffleSplit} (80 engines for training, 20 for validation). This prevents data leakage: since consecutive cycles from the same engine are highly autocorrelated, a row-level random split would allow near-identical samples to appear in both train and validation sets, inflating validation metrics. For final test-set evaluation, all models are retrained on the full training data (100 engines, 20{,}631 samples).
 
 % ============================================================
 \section{Results}
 
 \subsection{Validation Set Comparison}
 
-Table~\ref{tab:val_results} compares the three models on the validation set. Both tree-based models substantially outperform Linear Regression, and XGBoost achieves the lowest RMSE and MAE.
+Table~\ref{tab:val_results} compares the three models on the validation set (20 held-out engines, split by unit via \texttt{GroupShuffleSplit}). Both tree-based models substantially outperform Linear Regression, and XGBoost achieves the lowest RMSE and MAE.
 
 \begin{table}[H]
 \centering
-\caption{Validation Set Performance}
+\caption{Validation Set Performance (grouped by engine unit)}
 \label{tab:val_results}
 \begin{tabular}{lccc}
 \toprule
 \textbf{Model} & \textbf{RMSE} & \textbf{MAE} & $\boldsymbol{R^2}$ \\
 \midrule
-Linear Regression & 21.68 & 17.61 & 0.723 \\
-Random Forest     & 18.77 & 13.58 & 0.792 \\
-XGBoost           & 18.72 & 13.31 & 0.793 \\
+Linear Regression & 20.41 & 16.48 & 0.761 \\
+Random Forest     & 17.22 & 12.55 & 0.830 \\
+XGBoost           & 16.94 & 12.19 & 0.835 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \subsection{Test Set Results}
 
-Using XGBoost as the best model, we evaluate on the held-out test set (100 engines, predicting RUL at the last observed cycle). Table~\ref{tab:test_results} shows the results.
+All three models are retrained on the full training data and evaluated on the held-out test set (100 engines, predicting RUL at the last observed cycle, ground truth from \texttt{RUL\_FD001.txt}). Table~\ref{tab:test_results} shows the results.
 
 \begin{table}[H]
 \centering
-\caption{Test Set Performance (XGBoost)}
+\caption{Test Set Performance (all models, trained on full training data)}
 \label{tab:test_results}
 \begin{tabular}{lccc}
 \toprule
 \textbf{Model} & \textbf{RMSE} & \textbf{MAE} & $\boldsymbol{R^2}$ \\
 \midrule
-XGBoost & 16.73 & 11.83 & 0.826 \\
+Linear Regression & 20.82 & 16.57 & 0.730 \\
+Random Forest     & 16.99 & 11.97 & 0.820 \\
+XGBoost           & 16.81 & 11.84 & 0.824 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-The test RMSE of 16.73 cycles is notably lower than the validation RMSE (18.72), likely because the test set evaluates only the last cycle per engine (a single prediction per trajectory) rather than all time steps including early, high-RUL samples.
+XGBoost achieves a 19.3\% RMSE reduction over Linear Regression on the same test set. The test RMSE (16.81) is slightly lower than the validation RMSE (16.94); this is expected because the test set evaluates only the last cycle per engine---a point where degradation signals are typically strongest---rather than all time steps including early, high-RUL samples where sensor readings are less discriminative.
 
 \subsection{Feature Importance}
 
@@ -201,8 +203,9 @@ Figure~\ref{fig:scatter} shows the predicted vs.\ actual RUL for the 100 test en
 This study demonstrates that machine learning models can effectively predict turbofan engine RUL from multivariate sensor data. Key findings:
 
 \begin{itemize}[nosep]
-    \item XGBoost achieves the best performance (test RMSE = 16.73, $R^2$ = 0.826), outperforming both Linear Regression and Random Forest.
+    \item XGBoost achieves the best test-set performance (RMSE = 16.81, $R^2$ = 0.824), a 19.3\% RMSE reduction over the Linear Regression baseline (RMSE = 20.82), with all models evaluated on the same test set.
     \item Simple preprocessing---removing constant sensors, clipping RUL at 125, and MinMax normalization---is sufficient for strong baseline performance.
+    \item Splitting the validation set by engine unit (rather than by row) prevents data leakage and gives more realistic validation estimates.
     \item Sensors 11, 4, and 9 are the most important features, showing clear degradation trends as engines approach failure.
 \end{itemize}
 
