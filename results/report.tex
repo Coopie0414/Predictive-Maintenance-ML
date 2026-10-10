@@ -17,7 +17,7 @@
 \graphicspath{{figures/}}
 
 \title{Remaining Useful Life Prediction for Turbofan Engines\\Using Machine Learning}
-\author{}
+\author{Haoshi Wang}
 \date{}
 
 \begin{document}
@@ -173,7 +173,7 @@ XGBoost           & 16.81 & 11.84 & 0.824 \\
 \end{tabular}
 \end{table}
 
-XGBoost achieves a 19.3\% RMSE reduction over Linear Regression on the same test set. The test RMSE (16.81) is slightly lower than the validation RMSE (16.94); this is expected because the test set evaluates only the last cycle per engine---a point where degradation signals are typically strongest---rather than all time steps including early, high-RUL samples where sensor readings are less discriminative.
+XGBoost achieves a 19.3\% RMSE reduction over Linear Regression on the same test set. The difference between test RMSE (16.81) and validation RMSE (16.94) is small and within normal variation given the sample sizes involved (20 validation engines vs.\ 100 test engines).
 
 \subsection{Feature Importance}
 

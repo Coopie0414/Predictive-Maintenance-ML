@@ -48,6 +48,7 @@ XGBoost achieves a **19.3% RMSE reduction** over the Linear Regression baseline.
 │   ├── figures/            # High-res figures (300 DPI)
 │   ├── report.tex          # LaTeX technical report source
 │   └── report.pdf          # Compiled 6-page report
+├── evaluate_all_models_testset.py  # Evaluate all models on test set & generate figures
 ├── requirements.txt
 └── README.md
 ```
